@@ -24,19 +24,6 @@ export interface CreateProfessionalInput {
   serviceIds?: UniqueId[];
 }
 
-/**
- * Professional Entity.
- *
- * Represents a bookable resource that performs services for a tenant.
- *
- * Notes:
- * - `userId` is optional: a Professional may not have a login account
- *   (e.g. a staff member who only appears in the schedule but doesn't use the system).
- * - `serviceIds` lists which services this professional performs. Empty list = not
- *   bookable yet (must add at least one service to appear in the public flow).
- * - `businessHours` is a Value Object — to change schedule, build a new BusinessHours
- *   and replace it via `setBusinessHours`.
- */
 export class Professional extends Entity<ProfessionalProps> {
   private static readonly MIN_NAME = 2;
   private static readonly MAX_NAME = 100;
@@ -157,10 +144,6 @@ export class Professional extends Entity<ProfessionalProps> {
     return this.props.status === "ARCHIVED";
   }
 
-  /**
-   * Can this professional be booked right now?
-   * Must be ACTIVE AND offer at least one service.
-   */
   public get isBookable(): boolean {
     return this.isActive && this.props.serviceIds.length > 0;
   }
@@ -209,18 +192,13 @@ export class Professional extends Entity<ProfessionalProps> {
     this.touch();
   }
 
-  /**
-   * Idempotent: adding the same serviceId twice is a no-op.
-   */
+
   public addService(serviceId: UniqueId): void {
     if (this.props.serviceIds.includes(serviceId)) return;
     this.props.serviceIds = [...this.props.serviceIds, serviceId];
     this.touch();
   }
 
-  /**
-   * Idempotent: removing a service not present is a no-op.
-   */
   public removeService(serviceId: UniqueId): void {
     const next = this.props.serviceIds.filter((id) => id !== serviceId);
     if (next.length === this.props.serviceIds.length) return;
