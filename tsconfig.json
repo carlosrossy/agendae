@@ -6,6 +6,8 @@
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
@@ -18,9 +20,14 @@
         "name": "next"
       }
     ],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+  "paths": {
+    "@/domain/*": ["./src/domain/*"],
+    "@/application/*": ["./src/application/*"],
+    "@/infrastructure/*": ["./src/infrastructure/*"],
+    "@/presentation/*": ["./src/presentation/*"],
+    "@/shared/*": ["./src/shared/*"],
+    "@/*": ["./src/*"]
+  }
   },
   "include": [
     "next-env.d.ts",
