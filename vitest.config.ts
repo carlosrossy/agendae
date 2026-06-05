@@ -7,6 +7,8 @@ export default defineConfig({
     environment: "node",
     include: ["tests/**/*.{test,spec}.ts", "tests/**/*.{test,spec}.tsx"],
     exclude: ["tests/e2e/**", "node_modules/**"],
+    fileParallelism: false, 
+    maxConcurrency: 1, 
   },
   resolve: {
     alias: {
@@ -15,6 +17,7 @@ export default defineConfig({
       "@/infrastructure": path.resolve(__dirname, "./src/infrastructure"),
       "@/presentation": path.resolve(__dirname, "./src/presentation"),
       "@/shared": path.resolve(__dirname, "./src/shared"),
+      "@/tests": path.resolve(__dirname, "./tests"),
     },
   },
 });

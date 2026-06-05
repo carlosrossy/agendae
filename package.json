@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "db:migrate:test": "cross-env DATABASE_URL=postgresql://postgres:postgres@localhost:5433/agendae_test?schema=public prisma migrate deploy",
+    "db:test:up": "docker compose up -d postgres-test && pnpm db:migrate:test"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
@@ -27,6 +29,7 @@
     "@types/react-dom": "^19",
     "@vitest/ui": "^4.1.8",
     "babel-plugin-react-compiler": "1.0.0",
+    "cross-env": "^10.1.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.7",
     "prisma": "^6.19.3",
