@@ -147,7 +147,7 @@ Use cases return `Result<E, T>` — typed errors as values. They never throw bus
 - ✅ ProfessionalMapper (handles `businessHours` JSON + `serviceIds` from join table)
 - ✅ `BusinessHours.restore()` added to allow mapper to rebuild from minute-based windows
 
-**4.3 Prisma Repositories (🔄 3 OF 6 DONE)**
+**4.3 Prisma Repositories (🔄 4 OF 6 DONE)**
 - ✅ `PrismaClient` singleton em `src/infrastructure/database/prisma/client.ts`
 - ✅ `docker-compose.yml` ganhou service `postgres-test` (porta 5433, `tmpfs` para velocidade)
 - ✅ `.env` ganhou `DATABASE_URL_TEST`
@@ -158,7 +158,7 @@ Use cases return `Result<E, T>` — typed errors as values. They never throw bus
 - ✅ `PrismaTenantRepository` + integration tests (PASSING ✅)
 - ✅ `PrismaUserRepository` + integration tests (8 tests PASSING ✅)
 - ✅ `PrismaServiceRepository` + integration tests (7 tests, incl. cross-tenant isolation, PASSING ✅)
-- ⏳ `PrismaCustomerRepository` — TODO next
+- ✅ `PrismaCustomerRepository` + integration tests (8 tests, incl. cross-tenant isolation, PASSING ✅)
 - ⏳ `PrismaProfessionalRepository` — TODO next (most complex: uses `$transaction` for join table sync)
 - ⏳ `PrismaBookingRepository` — TODO next
 
