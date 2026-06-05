@@ -147,7 +147,7 @@ Use cases return `Result<E, T>` — typed errors as values. They never throw bus
 - ✅ ProfessionalMapper (handles `businessHours` JSON + `serviceIds` from join table)
 - ✅ `BusinessHours.restore()` added to allow mapper to rebuild from minute-based windows
 
-**4.3 Prisma Repositories (🔄 4 OF 6 DONE)**
+**4.3 Prisma Repositories (🔄 5 OF 6 DONE)**
 - ✅ `PrismaClient` singleton em `src/infrastructure/database/prisma/client.ts`
 - ✅ `docker-compose.yml` ganhou service `postgres-test` (porta 5433, `tmpfs` para velocidade)
 - ✅ `.env` ganhou `DATABASE_URL_TEST`
@@ -159,8 +159,8 @@ Use cases return `Result<E, T>` — typed errors as values. They never throw bus
 - ✅ `PrismaUserRepository` + integration tests (8 tests PASSING ✅)
 - ✅ `PrismaServiceRepository` + integration tests (7 tests, incl. cross-tenant isolation, PASSING ✅)
 - ✅ `PrismaCustomerRepository` + integration tests (8 tests, incl. cross-tenant isolation, PASSING ✅)
-- ⏳ `PrismaProfessionalRepository` — TODO next (most complex: uses `$transaction` for join table sync)
-- ⏳ `PrismaBookingRepository` — TODO next
+- ✅ `PrismaProfessionalRepository` + integration tests (9 tests; `$transaction` + "replace" link sync, PASSING ✅)
+- ⏳ `PrismaBookingRepository` — TODO next (last one)
 
 **4.4 Bcrypt PasswordHasher (⏳ NOT STARTED)**
 - Will create `BcryptPasswordHasher` implementing `PasswordHasher` port
@@ -289,6 +289,7 @@ When helping the user:
 - `Booking.create()` accepts optional `now` for deterministic testing
 - All Prisma repos use `upsert` for `save` — covers both insert and update
 - Idempotent `delete` (catches `P2025` "not found" silently)
+- `PrismaProfessionalRepository.save` syncs the `professional_services` join table with the "replace" strategy (delete-all + re-insert) inside a `$transaction` — chosen over incremental diff because a professional owns few services; can't go inconsistent
 
 ---
 
