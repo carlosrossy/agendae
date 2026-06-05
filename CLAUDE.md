@@ -133,7 +133,7 @@ Use cases return `Result<E, T>` — typed errors as values. They never throw bus
 - ✅ `ApplicationError` base class
 - ✅ ~10 typed application errors
 
-### 🔄 Phase 4 — Infrastructure (IN PROGRESS — ~50% done)
+### 🔄 Phase 4 — Infrastructure (IN PROGRESS — ~75% done)
 
 **4.1 Prisma Setup (✅ COMPLETED)**
 - ✅ Prisma 6.19 installed
@@ -147,7 +147,7 @@ Use cases return `Result<E, T>` — typed errors as values. They never throw bus
 - ✅ ProfessionalMapper (handles `businessHours` JSON + `serviceIds` from join table)
 - ✅ `BusinessHours.restore()` added to allow mapper to rebuild from minute-based windows
 
-**4.3 Prisma Repositories (🔄 5 OF 6 DONE)**
+**4.3 Prisma Repositories (✅ COMPLETED — 6 OF 6 DONE)**
 - ✅ `PrismaClient` singleton em `src/infrastructure/database/prisma/client.ts`
 - ✅ `docker-compose.yml` ganhou service `postgres-test` (porta 5433, `tmpfs` para velocidade)
 - ✅ `.env` ganhou `DATABASE_URL_TEST`
@@ -160,10 +160,13 @@ Use cases return `Result<E, T>` — typed errors as values. They never throw bus
 - ✅ `PrismaServiceRepository` + integration tests (7 tests, incl. cross-tenant isolation, PASSING ✅)
 - ✅ `PrismaCustomerRepository` + integration tests (8 tests, incl. cross-tenant isolation, PASSING ✅)
 - ✅ `PrismaProfessionalRepository` + integration tests (9 tests; `$transaction` + "replace" link sync, PASSING ✅)
-- ⏳ `PrismaBookingRepository` — TODO next (last one)
+- ✅ `PrismaBookingRepository` + integration tests (9 tests; overlap-range query, status NOT filtered, PASSING ✅)
 
-**4.4 Bcrypt PasswordHasher (⏳ NOT STARTED)**
-- Will create `BcryptPasswordHasher` implementing `PasswordHasher` port
+**4.4 Bcrypt PasswordHasher (✅ COMPLETED)**
+- ✅ `bcryptjs` (pure JS, no native build — chosen for painless Windows install)
+- ✅ `BcryptPasswordHasher` in `src/infrastructure/security/` implementing `PasswordHasher` port
+- ✅ Injectable cost factor (rounds), default 12; tests use 4 for speed
+- ✅ 5 unit tests (random-salt property, wrong-password, cross-instance verify, PASSING ✅)
 - Replaces `FakePasswordHasher` in production composition
 
 **4.5 Row-Level Security / RLS (⏳ NOT STARTED) ⭐**
@@ -209,11 +212,11 @@ Where the front-end finally appears. Plans:
 
 ## Where We Are RIGHT NOW
 
-**Last commit:** `feat(infra): add Prisma client and TenantRepository with integration tests`
+**Last commit:** `feat(infra): add PrismaBookingRepository ...` (Bcrypt 4.4 done, pending commit)
 
-**Next concrete step:** Create the 5 remaining Prisma repositories (User, Service, Customer, Professional, Booking) following the pattern of `PrismaTenantRepository`. Then write integration tests covering each.
+**Next concrete step:** Phase 4.5 — RLS / Row-Level Security ⭐ (the big one): new migration enabling RLS + per-tenant policies, set `app.current_tenant` per Prisma session, security test (tenant A can't see tenant B). Then 4.6 Composition Root and 4.7 ConsoleEmailHandler.
 
-**Total tests passing:** ~370+ (unit + integration). Run time: a few seconds.
+**Total tests passing:** 536 (unit + integration), 34 files. Run time: ~15s. `pnpm typecheck` clean.
 
 ---
 
@@ -290,6 +293,7 @@ When helping the user:
 - All Prisma repos use `upsert` for `save` — covers both insert and update
 - Idempotent `delete` (catches `P2025` "not found" silently)
 - `PrismaProfessionalRepository.save` syncs the `professional_services` join table with the "replace" strategy (delete-all + re-insert) inside a `$transaction` — chosen over incremental diff because a professional owns few services; can't go inconsistent
+- Password hashing uses `bcryptjs` (pure-JS) not native `bcrypt`/`argon2` — zero native build on Windows; cost factor injectable via constructor (default 12). The `PasswordHasher` port keeps the lib swappable later
 
 ---
 

@@ -1,7 +1,7 @@
 import type { Professional } from "@/domain/entities/professional";
 import type { ProfessionalRepository } from "@/domain/repositories/professional-repository";
 import type { UniqueId } from "@/shared/utils/id";
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaClient, Prisma } from "@prisma/client";
 import { ProfessionalMapper } from "@/infrastructure/database/prisma/mappers/professional.mapper";
 
 export class PrismaProfessionalRepository implements ProfessionalRepository {
@@ -10,6 +10,14 @@ export class PrismaProfessionalRepository implements ProfessionalRepository {
   async save(professional: Professional): Promise<void> {
     const data = ProfessionalMapper.toPersistence(professional);
     const serviceIds = [...professional.serviceIds];
+    // Prisma's Json columns expect InputJsonValue. The mapper's typed
+    // BusinessHoursJson shape lacks the index signature that InputJsonObject
+    // requires, so it can't be assigned/cast directly — going through unknown
+    // is the documented escape hatch for typed JSON at the persistence boundary.
+    const row = {
+      ...data,
+      businessHours: data.businessHours as unknown as Prisma.InputJsonValue,
+    };
 
     // The professional row and its service links must move together, so we
     // wrap them in a transaction. Link sync uses the "replace" strategy:
@@ -19,8 +27,8 @@ export class PrismaProfessionalRepository implements ProfessionalRepository {
     await this.prisma.$transaction(async (tx) => {
       await tx.professional.upsert({
         where: { id: data.id },
-        create: data,
-        update: data,
+        create: row,
+        update: row,
       });
 
       await tx.professionalService.deleteMany({
