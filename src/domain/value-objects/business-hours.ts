@@ -2,7 +2,6 @@ import { ValueObject } from "@/shared/utils/value-object";
 import { InvalidBusinessHoursError } from "@/domain/errors/invalid-business-hours.error";
 import type { TimeSlot } from "@/domain/value-objects/time-slot";
 
-
 export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 export interface WeeklyWindow {
@@ -14,7 +13,7 @@ export interface WeeklyWindow {
 export interface WeeklyWindowInput {
   dayOfWeek: DayOfWeek;
   start: string; // "HH:MM"
-  end: string;   // "HH:MM"
+  end: string; // "HH:MM"
 }
 
 interface BusinessHoursProps {
@@ -40,15 +39,42 @@ export class BusinessHours extends ValueObject<BusinessHoursProps> {
     BusinessHours.assertNoOverlapsWithinDay(windows);
 
     const sorted = [...windows].sort(
-      (a, b) =>
-        a.dayOfWeek - b.dayOfWeek || a.startMinutes - b.startMinutes,
+      (a, b) => a.dayOfWeek - b.dayOfWeek || a.startMinutes - b.startMinutes,
     );
 
     return new BusinessHours({ windows: Object.freeze(sorted) });
   }
 
+  public static restore(
+    windows: Array<{
+      dayOfWeek: number;
+      startMinutes: number;
+      endMinutes: number;
+    }>,
+  ): BusinessHours {
+    // Rebuild via the public factory — converts minutes back to "HH:MM".
+    // Re-validation is cheap and keeps invariants enforced even on restore.
+    return BusinessHours.create(
+      windows.map((w) => ({
+        dayOfWeek: w.dayOfWeek as 0 | 1 | 2 | 3 | 4 | 5 | 6,
+        start: BusinessHours.minutesToTimeString(w.startMinutes),
+        end: BusinessHours.minutesToTimeString(w.endMinutes),
+      })),
+    );
+  }
+
+  private static minutesToTimeString(minutes: number): string {
+    const hh = String(Math.floor(minutes / 60)).padStart(2, "0");
+    const mm = String(minutes % 60).padStart(2, "0");
+    return `${hh}:${mm}`;
+  }
+
   private static parseInput(input: WeeklyWindowInput): WeeklyWindow {
-    if (!Number.isInteger(input.dayOfWeek) || input.dayOfWeek < 0 || input.dayOfWeek > 6) {
+    if (
+      !Number.isInteger(input.dayOfWeek) ||
+      input.dayOfWeek < 0 ||
+      input.dayOfWeek > 6
+    ) {
       throw new InvalidBusinessHoursError(
         `dayOfWeek must be an integer 0..6, received ${input.dayOfWeek}.`,
       );
@@ -132,7 +158,8 @@ export class BusinessHours extends ValueObject<BusinessHoursProps> {
     const endDay = endDate.getUTCDay() as DayOfWeek;
     if (startDay !== endDay) return false;
 
-    const startMinutes = startDate.getUTCHours() * 60 + startDate.getUTCMinutes();
+    const startMinutes =
+      startDate.getUTCHours() * 60 + startDate.getUTCMinutes();
     const endMinutes = endDate.getUTCHours() * 60 + endDate.getUTCMinutes();
 
     return this.props.windows.some(
